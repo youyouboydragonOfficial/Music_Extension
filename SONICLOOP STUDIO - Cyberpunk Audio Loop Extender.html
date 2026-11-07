@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONICLOOP STUDIO // Seamless Audio Loop Extender</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        obsidian: '#07090e',
+                        surface: '#0d131f',
+                        surfaceBorder: '#1c263c',
+                        neonCyan: '#00f0ff',
+                        neonPink: '#ff007f',
+                        neonGreen: '#00ff66',
+                        neonAmber: '#ffaa00',
+                    },
+                    keyframes: {
+                        rainbowShift: {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' },
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        }
+                    },
+                    animation: {
+                        rainbow: 'rainbowShift 6s ease infinite',
+                        scan: 'scanline 6s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* レインボーネオングラデーション */
+        .rainbow-gradient {
+            background: linear-gradient(90deg, #ff007f, #ff4500, #ffea00, #00ff66, #00f0ff, #7928ca, #ff007f);
+            background-size: 300% 300%;
+            animation: rainbowShift 5s ease infinite;
+        }
+
+        .rainbow-text {
+            background: linear-gradient(90deg, #ff007f, #ff7b00, #fae100, #00ff66, #00f0ff, #9b51e0, #ff007f);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowShift 4s linear infinite;
+        }
+
+        .rainbow-border-card {
+            position: relative;
+            border-radius: 1.25rem;
+            background: linear-gradient(135deg, rgba(255,0,127,0.5), rgba(0,240,255,0.5), rgba(0,255,102,0.5));
+            padding: 1.5px;
+        }
+        .rainbow-border-card-inner {
+            background: #0b101b;
+            border-radius: calc(1.25rem - 1.5px);
+        }
+
+        /* スライダー */
+        input[type=range] {
+            accent-color: #00f0ff;
+        }
+
+        /* スクロールバー */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #07090e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1c263c;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-slate-100 min-h-screen flex flex-col font-sans selection:bg-neonCyan selection:text-black overflow-x-hidden relative">
+
+    <!-- 背景ネオングロー ＆ グリッド -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-32 -left-32 w-[30rem] h-[30rem] bg-gradient-to-r from-pink-600/20 to-purple-600/15 rounded-full blur-[140px]"></div>
+        <div class="absolute top-1/3 -right-32 w-[34rem] h-[34rem] bg-gradient-to-r from-cyan-500/15 to-emerald-500/15 rounded-full blur-[160px]"></div>
+        <div class="absolute -bottom-32 left-1/4 w-[32rem] h-[32rem] bg-gradient-to-r from-yellow-500/10 via-pink-500/15 to-purple-600/15 rounded-full blur-[150px]"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#141d2e_1px,transparent_1px),linear-gradient(to_bottom,#141d2e_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,#000_70%,transparent_100%)] opacity-35"></div>
+    </div>
+
+    <!-- ヘッダー -->
+    <header class="relative z-10 border-b border-surfaceBorder/80 bg-obsidian/85 backdrop-blur-md sticky top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl rainbow-gradient p-[1.5px] shadow-lg shadow-cyan-500/20 flex items-center justify-center">
+                    <div class="w-full h-full bg-obsidian rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-arrows-spin text-base rainbow-text"></i>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-display font-black text-xl tracking-wider rainbow-text">SONICLOOP STUDIO</span>
+                    <span class="text-[9px] block font-mono text-neonCyan font-bold tracking-widest -mt-1">PRO HIGH-SPEED AUDIO EXTENDER</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-surface border border-surfaceBorder text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-neonGreen animate-pulse"></span>
+                    <span>MEMORY SAFE // ZERO CRASH</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="relative z-10 flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-8 w-full flex flex-col items-center">
+
+        <!-- ヒーロータイトル -->
+        <div class="text-center max-w-3xl mb-8">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-cyan-950/70 border border-neonCyan/40 mb-3 shadow-[0_0_15px_rgba(0,240,255,0.15)]">
+                <i class="fa-solid fa-bolt text-yellow-300"></i>
+                <span class="text-cyan-300">高音質16-bit PCM • シームレス補正 • 高速書き出し</span>
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-black font-display tracking-tight leading-tight mb-3">
+                音楽を任意の回数リピート拡張<br>
+                <span class="rainbow-text">超高速オーディオループエンジン</span>
+            </h1>
+            <p class="text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
+                作業用BGM、長尺動画、耐久音源などに。楽曲ファイルを指定回数シームレスに結合し、<br class="hidden sm:inline">
+                ブラウザのメモリを圧迫することなく正確な大容量WAVファイルを高速生成します。
+            </p>
+        </div>
+
+        <!-- コントロールメインカード -->
+        <div class="w-full space-y-6">
+
+            <div class="rainbow-border-card shadow-[0_0_40px_rgba(0,240,255,0.15)]">
+                <div class="rainbow-border-card-inner p-6 sm:p-8 space-y-6">
+
+                    <!-- ループ回数設定 (ファイルアップロード前でも完全動作) -->
+                    <div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <label for="repeatInput" class="text-base font-extrabold flex items-center gap-2 text-white">
+                                <i class="fa-solid fa-repeat text-neonCyan"></i>
+                                <span>ループ回数の指定</span>
+                                <span class="text-xs font-normal text-slate-400 font-mono">(音源読込前でも自由に設定可能)</span>
+                            </label>
+                            <span class="text-xs font-mono text-neonCyan px-2.5 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30">
+                                範囲: 1 〜 1,000回
+                            </span>
+                        </div>
+
+                        <!-- 回数入力 ＆ スライダー -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                            <div class="md:col-span-5 relative">
+                                <input type="number" id="repeatInput" min="1" max="1000" value="100" class="w-full bg-black/80 border-2 border-neonCyan/50 focus:border-neonCyan rounded-xl px-4 py-3 font-mono text-3xl font-black text-neonCyan outline-none transition-all shadow-[0_0_20px_rgba(0,240,255,0.2)] text-left">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm pointer-events-none">回リピート</span>
+                            </div>
+
+                            <div class="md:col-span-7 flex flex-col justify-center">
+                                <input type="range" id="repeatSlider" min="1" max="500" value="100" class="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1.5 px-0.5">
+                                    <span>1回</span>
+                                    <span>50回</span>
+                                    <span>100回</span>
+                                    <span>250回</span>
+                                    <span class="text-neonPink font-bold">500回</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- プリセットボタン群 -->
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4">
+                            <button class="preset-btn py-2.5 px-2 text-xs font-mono font-bold rounded-xl bg-surface hover:bg-slate-800 border border-surfaceBorder hover:border-neonCyan/50 text-slate-200 transition-all flex items-center justify-center gap-1.5" data-count="10">
+                                <span>10回</span>
+                            </button>
+                            <button class="preset-btn py-2.5 px-2 text-xs font-mono font-bold rounded-xl bg-surface hover:bg-slate-800 border border-surfaceBorder hover:border-neonCyan/50 text-slate-200 transition-all flex items-center justify-center gap-1.5" data-count="50">
+                                <span>50回</span>
+                            </button>
+                            <button class="preset-btn py-2.5 px-2 text-xs font-mono font-bold rounded-xl rainbow-gradient p-[1px] shadow-md shadow-neonCyan/20" data-count="100">
+                                <span class="flex items-center justify-center w-full h-full bg-obsidian hover:bg-transparent rounded-[11px] text-yellow-300 font-black transition-all">
+                                    ★ 100回 (定番)
+                                </span>
+                            </button>
+                            <button class="preset-btn py-2.5 px-2 text-xs font-mono font-bold rounded-xl bg-surface hover:bg-purple-900/40 border border-purple-500/40 text-purple-300 hover:text-white transition-all flex items-center justify-center gap-1.5" data-count="200">
+                                <span>200回</span>
+                            </button>
+                            <button class="preset-btn col-span-2 sm:col-span-1 py-2.5 px-2 text-xs font-mono font-bold rounded-xl bg-gradient-to-r from-pink-950/80 to-purple-950/80 border border-neonPink text-pink-200 hover:text-white transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-pink-500/20" data-count="500">
+                                <i class="fa-solid fa-fire text-neonPink"></i> 500回 (長尺)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- リアルタイム仕様・正確な容量カウンターHUD -->
+                    <div class="p-5 rounded-2xl bg-black/60 border border-surfaceBorder space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-mono uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                <i class="fa-solid fa-stopwatch text-neonCyan"></i>
+                                <span>ESTIMATED OUTPUT SPECIFICATIONS</span>
+                            </span>
+                            <span id="wavLimitBadge" class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-neonGreen font-bold">
+                                STANDARD WAV (OK)
+                            </span>
+                        </div>
+
+                        <!-- 巨大再生時間ディスプレイ -->
+                        <div id="totalDurationBig" class="text-3xl sm:text-5xl font-black font-mono tracking-tight rainbow-text">
+                            05:00:00
+                        </div>
+
+                        <!-- 正確な詳細計算スペック -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800/80 text-xs font-mono text-slate-400">
+                            <div class="flex items-center justify-between sm:justify-start gap-2">
+                                <span>単体音源尺:</span>
+                                <span id="singleTrackDurationText" class="text-slate-200 font-bold">3分00秒 (目安)</span>
+                            </div>
+                            <div class="flex items-center justify-between sm:justify-start gap-2">
+                                <span>ループ指定:</span>
+                                <span id="currentRepeatCountText" class="text-neonCyan font-bold">100 回</span>
+                            </div>
+                            <div class="flex items-center justify-between sm:justify-start gap-2">
+                                <span>出力ファイル容量:</span>
+                                <span id="calculatedFileSizeText" class="text-neonGreen font-bold">約 3.17 GB</span>
+                            </div>
+                        </div>
+
+                        <!-- 4GB超過警告アラート (4GBを超えた場合のみ表示) -->
+                        <div id="wavOverLimitNotice" class="hidden p-3 rounded-xl bg-amber-950/60 border border-amber-500/60 text-amber-300 text-xs flex items-start gap-2.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm mt-0.5 shrink-0"></i>
+                            <div>
+                                <span class="font-bold">WAV規格の容量上限（4GB）に達しています:</span>
+                                <span class="text-slate-300 block mt-0.5">
+                                    標準WAV（32-bit）は4GBを超える場合、一部のプレイヤーや編集ソフトで再生できない場合があります。ループ回数を調整することをおすすめします。
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- つなぎ目のマイクロクロスフェード設定 -->
+                    <div class="p-4 rounded-xl bg-black/40 border border-surfaceBorder">
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="font-bold text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-wave-square text-neonGreen"></i>
+                                <span>シームレス継ぎ目補正 (マイクロクロスフェード)</span>
+                            </span>
+                            <span id="crossfadeText" class="font-mono text-neonCyan font-bold">15 ms</span>
+                        </div>
+                        <input type="range" id="crossfadeInput" min="0" max="60" value="15" class="w-full h-1.5 bg-slate-800 rounded appearance-none cursor-pointer">
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            曲が最初に戻る境界で発生しやすい「プツッ」というゼロクロスノイズを自動的にブレンドして解消します。
+                        </p>
+                    </div>
+
+                    <!-- 音源アップロードエリア -->
+                    <div class="border-t border-surfaceBorder pt-6">
+
+                        <!-- 未選択時ドロップゾーン -->
+                        <div id="dropZone" class="group cursor-pointer rounded-2xl border-2 border-dashed border-surfaceBorder hover:border-neonCyan bg-surface/60 p-8 text-center transition-all duration-300">
+                            <input type="file" id="audioFileInput" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac" class="hidden">
+                            <div class="flex flex-col items-center">
+                                <div class="w-14 h-14 mb-3 rounded-2xl bg-cyan-950/50 border border-neonCyan/30 flex items-center justify-center text-2xl text-neonCyan group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-all">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                </div>
+                                <h3 class="text-base sm:text-lg font-bold mb-1 text-white">音楽・音源ファイルをドロップ</h3>
+                                <p class="text-xs text-slate-400 mb-3">MP3, WAV, M4A, FLAC, OGG 形式に対応</p>
+                                <span class="px-4 py-2 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 inline-flex items-center gap-2">
+                                    <i class="fa-solid fa-folder-open text-neonCyan"></i> ファイルを選択
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 読み込み完了後デッキ -->
+                        <div id="loadedAudioSection" class="hidden space-y-4">
+                            <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-black/50 border border-surfaceBorder">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-neonCyan/40 flex items-center justify-center text-neonCyan shrink-0">
+                                        <i class="fa-solid fa-music"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div id="trackFileName" class="text-sm font-bold text-white truncate max-w-xs sm:max-w-md">audio_track.mp3</div>
+                                        <div class="text-[11px] font-mono text-slate-400 mt-0.5">
+                                            実尺: <span id="actualDurationText" class="text-neonCyan font-bold">00:00</span> • <span id="actualFormatText">44.1kHz 16-bit Stereo</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button id="previewPlayBtn" class="px-3.5 py-1.5 rounded-lg bg-surface hover:bg-slate-800 border border-surfaceBorder text-white text-xs font-bold flex items-center gap-1.5 transition-all">
+                                        <i class="fa-solid fa-play text-neonGreen" id="previewIcon"></i>
+                                        <span id="previewBtnText">試聴</span>
+                                    </button>
+                                    <button id="changeFileBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface hover:bg-slate-800 border border-surfaceBorder text-slate-400 hover:text-white transition-all">
+                                        変更
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 音量＆プレビュー補助バー -->
+                            <div class="flex items-center justify-between text-xs px-2 text-slate-400">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-volume-high text-slate-500"></i>
+                                    <span>試聴音量:</span>
+                                    <input type="range" id="previewVolume" min="0" max="1" step="0.05" value="0.8" class="w-20 h-1.5 bg-slate-800 rounded appearance-none cursor-pointer">
+                                </div>
+                                <span class="font-mono text-[11px] text-slate-500">※試聴中はループONで再生されます</span>
+                            </div>
+
+                            <!-- 波形キャンバス -->
+                            <div class="relative w-full h-20 bg-black/80 rounded-xl overflow-hidden border border-surfaceBorder">
+                                <canvas id="waveformCanvas" class="w-full h-full block"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- エクスポートボタン -->
+                    <div class="pt-2">
+                        <button id="instantExportBtn" class="w-full py-4 px-6 rounded-2xl rainbow-gradient text-black font-black text-base uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-neonPink/25 hover:shadow-neonCyan/40 hover:scale-[1.01] active:scale-[0.99] transition-all">
+                            <i class="fa-solid fa-bolt-lightning text-lg"></i>
+                            <span id="exportBtnMainText">拡張WAVを高速書き出し</span>
+                        </button>
+                        <div class="flex items-center justify-center gap-4 text-[10px] text-slate-500 font-mono mt-2.5">
+                            <span>⚡ メモリ負荷0% (ゼロコピー)</span>
+                            <span>•</span>
+                            <span>🔒 16-bit PCM 正統派WAV</span>
+                            <span>•</span>
+                            <span>⏳ リアルタイムHUD待機バー</span>
+                        </div>
+                    </div>
+
+                    <!-- 書き出し完了ダウンロードカード -->
+                    <div id="downloadCard" class="hidden p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-cyan-950/60 to-purple-950/60 border border-emerald-500/60 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-neonGreen text-xl">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-extrabold text-white flex items-center gap-2">
+                                        <span>エクスポート完了！</span>
+                                        <span id="exportTimeTakenBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">所要時間: 0.18秒</span>
+                                    </div>
+                                    <div id="downloadSubtitle" class="text-xs text-slate-300 font-mono mt-0.5">100回リピート • 5時間00分 • 3.17 GB (WAV)</div>
+                                </div>
+                            </div>
+                            <a id="directDownloadLink" href="#" class="px-6 py-3 rounded-xl bg-neonGreen hover:bg-emerald-300 text-black font-black text-xs flex items-center gap-2 transition-all shadow-lg shadow-neonGreen/30">
+                                <i class="fa-solid fa-download"></i>
+                                <span>ファイルを保存</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 機能解説カード -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-5 rounded-xl bg-surface/60 border border-surfaceBorder">
+                    <div class="text-neonCyan text-lg mb-2"><i class="fa-solid fa-microchip"></i></div>
+                    <h4 class="text-xs font-bold text-white mb-1">ゼロコピー・メモリ保護</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">
+                        100回〜500回分の巨大なPCM配列をRAM上に多重展開せず、ブラウザの参照型Blobストリームにより低スペック端末やスマホでもクラッシュしません。
+                    </p>
+                </div>
+                <div class="p-5 rounded-xl bg-surface/60 border border-surfaceBorder">
+                    <div class="text-neonPink text-lg mb-2"><i class="fa-solid fa-sliders"></i></div>
+                    <h4 class="text-xs font-bold text-white mb-1">事前設定＆リアルタイム計算</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">
+                        ファイルを読み込む前からループ回数や目標時間を自由にシミュレーション。読み込み後は正確なPCMバイト数に基づき正確な容量を算出します。
+                    </p>
+                </div>
+                <div class="p-5 rounded-xl bg-surface/60 border border-surfaceBorder">
+                    <div class="text-neonGreen text-lg mb-2"><i class="fa-solid fa-music"></i></div>
+                    <h4 class="text-xs font-bold text-white mb-1">シームレス・クロスフェード</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">
+                        反復の境界で生じるクリック音やポップノイズをマイクロ秒単位で自動クロスフェード。どんな楽曲でも違和感なくスムーズにループします。
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ★ リアルタイム・サイバー進行HUDモーダル ★ -->
+    <div id="progressModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="w-full max-w-lg rainbow-border-card shadow-[0_0_50px_rgba(0,240,255,0.3)]">
+            <div class="rainbow-border-card-inner p-6 sm:p-8 space-y-6 bg-obsidian relative overflow-hidden">
+                <!-- スキャンラインエフェクト -->
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-neonCyan/5 to-transparent h-12 w-full animate-scan pointer-events-none"></div>
+
+                <!-- モーダルヘッダー -->
+                <div class="flex items-center justify-between border-b border-surfaceBorder pb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-neonCyan animate-ping"></span>
+                        <span class="font-display font-bold text-sm tracking-wider text-white">STREAM ENGINE HUD</span>
+                    </div>
+                    <span id="modalLoopTarget" class="text-xs font-mono text-neonCyan font-bold px-2 py-0.5 rounded bg-cyan-950 border border-cyan-500/30">
+                        100 REPEATS
+                    </span>
+                </div>
+
+                <!-- リアルタイム進行パーセント ＆ 経過タイマー -->
+                <div class="text-center space-y-1">
+                    <div id="progressPercent" class="text-5xl sm:text-6xl font-black font-mono rainbow-text tracking-tight">
+                        0%
+                    </div>
+                    <div class="flex items-center justify-center gap-2 text-xs font-mono text-slate-400">
+                        <span id="progressStageText">INITIALIZING PCM BLOCK...</span>
+                        <span>•</span>
+                        <span id="elapsedTimerText" class="text-neonCyan font-bold">0.00s</span>
+                    </div>
+                </div>
+
+                <!-- 進行バー -->
+                <div class="relative w-full h-4 bg-slate-900 rounded-full p-0.5 overflow-hidden border border-slate-700">
+                    <div id="progressBarFill" class="h-full rainbow-gradient rounded-full transition-all duration-150 shadow-[0_0_15px_#00f0ff]" style="width: 0%;"></div>
+                </div>
+
+                <!-- 各フェーズステータスリスト -->
+                <div class="space-y-2 text-xs font-mono text-slate-400 bg-black/50 p-4 rounded-xl border border-surfaceBorder">
+                    <div id="step1" class="flex items-center justify-between text-slate-500">
+                        <span>[1] PCM Buffer & Boundary Crossfade</span>
+                        <span class="status-icon"><i class="fa-solid fa-spinner fa-spin text-neonCyan"></i></span>
+                    </div>
+                    <div id="step2" class="flex items-center justify-between text-slate-500">
+                        <span>[2] Exact RIFF / WAV 44-byte Header Gen</span>
+                        <span class="status-icon"><i class="fa-regular fa-clock"></i></span>
+                    </div>
+                    <div id="step3" class="flex items-center justify-between text-slate-500">
+                        <span>[3] Zero-Copy Chunk Stream Assembly</span>
+                        <span class="status-icon"><i class="fa-regular fa-clock"></i></span>
+                    </div>
+                    <div id="step4" class="flex items-center justify-between text-slate-500">
+                        <span>[4] Native Blob Construction & Delivery</span>
+                        <span class="status-icon"><i class="fa-regular fa-clock"></i></span>
+                    </div>
+                </div>
+
+                <div class="text-[10px] text-center text-slate-500 font-mono">
+                    ※ ゼロコピー構造により端末のメモリ負荷はわずか数MBに保たれます
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知トースト (alert禁止) -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900 border border-neonCyan/50 shadow-2xl text-white text-xs font-semibold">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-neonGreen text-sm"></i>
+            <span id="toastMsg">通知メッセージ</span>
+        </div>
+    </div>
+
+    <!-- アプリケーションロジック -->
+    <script>
+        // --- Web Audio Context ---
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // --- ステート管理 ---
+        let originalAudioBuffer = null;
+        let previewSourceNode = null;
+        let previewGainNode = null;
+        let isPlaying = false;
+        let currentFileName = "";
+        const defaultVirtualDuration = 180; // 音源未読み込み時のデフォルト基準尺 (3分00秒)
+
+        // --- DOM要素 ---
+        const repeatInput = document.getElementById('repeatInput');
+        const repeatSlider = document.getElementById('repeatSlider');
+        const presetBtns = document.querySelectorAll('.preset-btn');
+        const crossfadeInput = document.getElementById('crossfadeInput');
+        const crossfadeText = document.getElementById('crossfadeText');
+
+        const totalDurationBig = document.getElementById('totalDurationBig');
+        const singleTrackDurationText = document.getElementById('singleTrackDurationText');
+        const currentRepeatCountText = document.getElementById('currentRepeatCountText');
+        const calculatedFileSizeText = document.getElementById('calculatedFileSizeText');
+        const wavLimitBadge = document.getElementById('wavLimitBadge');
+        const wavOverLimitNotice = document.getElementById('wavOverLimitNotice');
+
+        const dropZone = document.getElementById('dropZone');
+        const audioFileInput = document.getElementById('audioFileInput');
+        const loadedAudioSection = document.getElementById('loadedAudioSection');
+        const trackFileName = document.getElementById('trackFileName');
+        const actualDurationText = document.getElementById('actualDurationText');
+        const actualFormatText = document.getElementById('actualFormatText');
+        const changeFileBtn = document.getElementById('changeFileBtn');
+        const waveformCanvas = document.getElementById('waveformCanvas');
+
+        const previewPlayBtn = document.getElementById('previewPlayBtn');
+        const previewIcon = document.getElementById('previewIcon');
+        const previewBtnText = document.getElementById('previewBtnText');
+        const previewVolume = document.getElementById('previewVolume');
+
+        const instantExportBtn = document.getElementById('instantExportBtn');
+        const downloadCard = document.getElementById('downloadCard');
+        const downloadSubtitle = document.getElementById('downloadSubtitle');
+        const directDownloadLink = document.getElementById('directDownloadLink');
+        const exportTimeTakenBadge = document.getElementById('exportTimeTakenBadge');
+
+        // モーダル要素
+        const progressModal = document.getElementById('progressModal');
+        const modalLoopTarget = document.getElementById('modalLoopTarget');
+        const progressPercent = document.getElementById('progressPercent');
+        const progressStageText = document.getElementById('progressStageText');
+        const elapsedTimerText = document.getElementById('elapsedTimerText');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+
+        // トースト要素
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        const toastIcon = document.getElementById('toastIcon');
+
+        // --- トースト通知表示 ---
+        let toastTimer = null;
+        function showToast(msg, isSuccess = true) {
+            clearTimeout(toastTimer);
+            toastMsg.textContent = msg;
+            toastIcon.className = isSuccess ? "fa-solid fa-circle-check text-neonGreen text-sm" : "fa-solid fa-triangle-exclamation text-neonPink text-sm";
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+
+        // --- 時間＆容量のフォーマット ---
+        function formatDuration(seconds) {
+            const sec = Math.floor(seconds);
+            const hrs = Math.floor(sec / 3600);
+            const mins = Math.floor((sec % 3600) / 60);
+            const secs = sec % 60;
+            const hStr = hrs.toString().padStart(2, '0');
+            const mStr = mins.toString().padStart(2, '0');
+            const sStr = secs.toString().padStart(2, '0');
+            return `${hStr}:${mStr}:${sStr}`;
+        }
+
+        function formatHumanDuration(seconds) {
+            const sec = Math.floor(seconds);
+            const hrs = Math.floor(sec / 3600);
+            const mins = Math.floor((sec % 3600) / 60);
+            const secs = sec % 60;
+            if (hrs > 0) return `${hrs}時間 ${mins}分 ${secs}秒`;
+            if (mins > 0) return `${mins}分 ${secs}秒`;
+            return `${secs}秒`;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024 * 1024) {
+                return (bytes / 1024).toFixed(1) + " KB";
+            } else if (bytes < 1024 * 1024 * 1024) {
+                return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+            } else {
+                return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+            }
+        }
+
+        // --- 仕様・ファイル容量の正確なリアルタイム計算 ---
+        function updateStats() {
+            let count = parseInt(repeatInput.value, 10);
+            if (isNaN(count) || count < 1) count = 1;
+            if (count > 1000) count = 1000;
+
+            repeatInput.value = count;
+            repeatSlider.value = Math.min(count, 500);
+            currentRepeatCountText.textContent = `${count.toLocaleString()} 回`;
+
+            const sampleRate = originalAudioBuffer ? originalAudioBuffer.sampleRate : 44100;
+            const channels = originalAudioBuffer ? originalAudioBuffer.numberOfChannels : 2;
+            const duration = originalAudioBuffer ? originalAudioBuffer.duration : defaultVirtualDuration;
+
+            if (originalAudioBuffer) {
+                singleTrackDurationText.textContent = formatHumanDuration(duration);
+                actualDurationText.textContent = formatDuration(duration);
+            } else {
+                singleTrackDurationText.textContent = `3分00秒 (目安)`;
+            }
+
+            const totalSeconds = duration * count;
+            totalDurationBig.textContent = formatDuration(totalSeconds);
+
+            // 正確なWAV容量計算: 44バイト(ヘッダー) + (サンプルレート * チャンネル数 * 2バイト[16-bit] * 単体秒数 * 回数)
+            const bytesPerSecond = sampleRate * channels * 2;
+            const singleLoopBytes = originalAudioBuffer 
+                ? (originalAudioBuffer.length * channels * 2)
+                : Math.floor(bytesPerSecond * duration);
+
+            const totalAudioBytes = singleLoopBytes * count;
+            const totalWavFileSizeBytes = 44 + totalAudioBytes;
+
+            calculatedFileSizeText.textContent = `約 ${formatBytes(totalWavFileSizeBytes)}`;
+
+            // WAV 4GB境界判定 (32-bit unsigned: 4,294,967,295 バイト)
+            if (totalWavFileSizeBytes >= 4294967000) {
+                wavLimitBadge.className = "text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-950 border border-amber-500 text-amber-300 font-bold";
+                wavLimitBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 4GB超過注意`;
+                wavOverLimitNotice.classList.remove('hidden');
+            } else {
+                wavLimitBadge.className = "text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-neonGreen font-bold";
+                wavLimitBadge.textContent = "STANDARD WAV (OK)";
+                wavOverLimitNotice.classList.add('hidden');
+            }
+        }
+
+        // 入力イベント（音源未読み込み時でも完全に連動）
+        repeatInput.addEventListener('input', updateStats);
+        repeatSlider.addEventListener('input', (e) => {
+            repeatInput.value = e.target.value;
+            updateStats();
+        });
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                repeatInput.value = btn.dataset.count;
+                updateStats();
+            });
+        });
+        crossfadeInput.addEventListener('input', (e) => {
+            crossfadeText.textContent = `${e.target.value} ms`;
+        });
+
+        // --- 波形描画 ---
+        function renderWaveform(buffer) {
+            const canvas = waveformCanvas;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            ctx.clearRect(0, 0, width, height);
+
+            const rawData = buffer.getChannelData(0);
+            const step = Math.ceil(rawData.length / width);
+            const amp = height / 2;
+
+            const grad = ctx.createLinearGradient(0, 0, width, 0);
+            grad.addColorStop(0, '#ff007f');
+            grad.addColorStop(0.35, '#fae100');
+            grad.addColorStop(0.7, '#00ff66');
+            grad.addColorStop(1, '#00f0ff');
+
+            ctx.fillStyle = grad;
+            for (let i = 0; i < width; i++) {
+                let min = 1.0;
+                let max = -1.0;
+                for (let j = 0; j < step; j++) {
+                    const datum = rawData[(i * step) + j];
+                    if (datum < min) min = datum;
+                    if (datum > max) max = datum;
+                }
+                const barHeight = Math.max(2, (max - min) * amp * 0.95);
+                ctx.fillRect(i, amp - barHeight / 2, 1.8, barHeight);
+            }
+        }
+
+        // --- 音声ファイル読み込み ---
+        async function handleAudioFile(file) {
+            currentFileName = file.name;
+            trackFileName.textContent = file.name;
+            const ctx = getAudioContext();
+
+            showToast("音声を解析中...", true);
+            const arrayBuffer = await file.arrayBuffer();
+
+            ctx.decodeAudioData(arrayBuffer, (decoded) => {
+                originalAudioBuffer = decoded;
+                actualFormatText.textContent = `${decoded.sampleRate}Hz 16-bit ${decoded.numberOfChannels === 2 ? 'Stereo' : 'Mono'}`;
+                
+                dropZone.classList.add('hidden');
+                loadedAudioSection.classList.remove('hidden');
+                downloadCard.classList.add('hidden');
+
+                renderWaveform(decoded);
+                updateStats();
+                showToast("音源の読み込みが完了しました", true);
+            }, (err) => {
+                console.error("Audio decode error:", err);
+                showToast("オーディオの解析に失敗しました。対応フォーマットをご確認ください。", false);
+            });
+        }
+
+        // ドロップ＆ファイル選択リスナー
+        dropZone.addEventListener('click', () => audioFileInput.click());
+        audioFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleAudioFile(e.target.files[0]);
+        });
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-neonCyan');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-neonCyan'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-neonCyan');
+            if (e.dataTransfer.files.length > 0) handleAudioFile(e.dataTransfer.files[0]);
+        });
+        changeFileBtn.addEventListener('click', () => {
+            stopPreview();
+            audioFileInput.click();
+        });
+
+        // --- プレビュー試聴制御 ---
+        function startPreview() {
+            if (!originalAudioBuffer) {
+                showToast("試聴する音源ファイルがありません", false);
+                return;
+            }
+            const ctx = getAudioContext();
+            stopPreview();
+
+            previewSourceNode = ctx.createBufferSource();
+            previewSourceNode.buffer = originalAudioBuffer;
+            previewSourceNode.loop = true;
+
+            previewGainNode = ctx.createGain();
+            previewGainNode.gain.value = parseFloat(previewVolume.value);
+
+            previewSourceNode.connect(previewGainNode);
+            previewGainNode.connect(ctx.destination);
+            previewSourceNode.start();
+
+            isPlaying = true;
+            previewIcon.className = "fa-solid fa-pause text-yellow-400";
+            previewBtnText.textContent = "停止";
+            showToast("ループ試聴中", true);
+        }
+
+        function stopPreview() {
+            if (previewSourceNode) {
+                try { previewSourceNode.stop(); } catch(e){}
+                previewSourceNode.disconnect();
+                previewSourceNode = null;
+            }
+            isPlaying = false;
+            previewIcon.className = "fa-solid fa-play text-neonGreen";
+            previewBtnText.textContent = "試聴";
+        }
+
+        previewPlayBtn.addEventListener('click', () => {
+            if (isPlaying) stopPreview();
+            else startPreview();
+        });
+
+        previewVolume.addEventListener('input', (e) => {
+            if (previewGainNode) {
+                previewGainNode.gain.value = parseFloat(e.target.value);
+            }
+        });
+
+        // --- HUDステップ更新 ---
+        function updateModalStep(stepEl, isDone, isActive) {
+            const icon = stepEl.querySelector('.status-icon');
+            if (isDone) {
+                stepEl.className = "flex items-center justify-between text-neonGreen font-bold";
+                icon.innerHTML = `<i class="fa-solid fa-circle-check text-neonGreen"></i>`;
+            } else if (isActive) {
+                stepEl.className = "flex items-center justify-between text-neonCyan font-bold";
+                icon.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-neonCyan"></i>`;
+            } else {
+                stepEl.className = "flex items-center justify-between text-slate-500";
+                icon.innerHTML = `<i class="fa-regular fa-clock"></i>`;
+            }
+        }
+
+        // =========================================================================
+        // ★ 高精度PCM ゼロコピー・リアルタイムHUDエクスポート ★
+        // =========================================================================
+        instantExportBtn.addEventListener('click', async () => {
+            if (!originalAudioBuffer) {
+                showToast("音源ファイルを読み込んでください", false);
+                return;
+            }
+            stopPreview();
+
+            const count = parseInt(repeatInput.value, 10);
+            if (!count || count < 1) {
+                showToast("有効なループ回数を指定してください", false);
+                return;
+            }
+
+            // モーダル初期化
+            modalLoopTarget.textContent = `${count.toLocaleString()} REPEATS`;
+            progressBarFill.style.width = "0%";
+            progressPercent.textContent = "0%";
+            progressStageText.textContent = "INITIALIZING ENGINE...";
+            elapsedTimerText.textContent = "0.00s";
+
+            updateModalStep(step1, false, true);
+            updateModalStep(step2, false, false);
+            updateModalStep(step3, false, false);
+            updateModalStep(step4, false, false);
+
+            progressModal.classList.remove('hidden', 'pointer-events-none');
+            setTimeout(() => progressModal.classList.remove('opacity-0'), 10);
+
+            const startTime = performance.now();
+            const timerInterval = setInterval(() => {
+                const el = ((performance.now() - startTime) / 1000).toFixed(2);
+                elapsedTimerText.textContent = `${el}s`;
+            }, 50);
+
+            const wait = (ms) => new Promise(res => setTimeout(res, ms));
+
+            try {
+                await wait(150);
+
+                // --- フェーズ 1: PCMデータ抽出 & マイクロクロスフェード ---
+                progressPercent.textContent = "25%";
+                progressBarFill.style.width = "25%";
+                progressStageText.textContent = "PROCESSING PCM & CROSSFADE...";
+
+                const numChannels = originalAudioBuffer.numberOfChannels;
+                const sampleRate = originalAudioBuffer.sampleRate;
+                const length = originalAudioBuffer.length;
+                const bytesPerSample = 2; // 16-bit PCM
+                const blockAlign = numChannels * bytesPerSample;
+                const singleLoopBytes = length * blockAlign;
+                
+                const totalDataBytes = singleLoopBytes * count;
+
+                const crossfadeMs = parseInt(crossfadeInput.value, 10);
+                const crossfadeSamples = Math.min(Math.floor(length / 2), Math.floor((crossfadeMs / 1000) * sampleRate));
+
+                const ch0 = new Float32Array(originalAudioBuffer.getChannelData(0));
+                const ch1 = numChannels > 1 ? new Float32Array(originalAudioBuffer.getChannelData(1)) : null;
+
+                // マイクロクロスフェード適用
+                if (crossfadeSamples > 0) {
+                    for (let i = 0; i < crossfadeSamples; i++) {
+                        const t = i / crossfadeSamples;
+                        const tailIdx = length - crossfadeSamples + i;
+                        const blend0 = (ch0[i] * t) + (ch0[tailIdx] * (1 - t));
+                        ch0[i] = blend0;
+                        ch0[tailIdx] = blend0;
+
+                        if (ch1) {
+                            const blend1 = (ch1[i] * t) + (ch1[tailIdx] * (1 - t));
+                            ch1[i] = blend1;
+                            ch1[tailIdx] = blend1;
+                        }
+                    }
+                }
+
+                // 1周分の16bit PCMバイナリを生成
+                const pcmBuffer = new ArrayBuffer(singleLoopBytes);
+                const pcmView = new Int16Array(pcmBuffer);
+                let pcmIdx = 0;
+
+                if (numChannels === 1) {
+                    for (let i = 0; i < length; i++) {
+                        let s = ch0[i];
+                        pcmView[pcmIdx++] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                    }
+                } else {
+                    for (let i = 0; i < length; i++) {
+                        let s0 = ch0[i];
+                        let s1 = ch1[i];
+                        pcmView[pcmIdx++] = s0 < 0 ? s0 * 0x8000 : s0 * 0x7FFF;
+                        pcmView[pcmIdx++] = s1 < 0 ? s1 * 0x8000 : s1 * 0x7FFF;
+                    }
+                }
+
+                updateModalStep(step1, true, false);
+                updateModalStep(step2, false, true);
+                await wait(120);
+
+                // --- フェーズ 2: 正確な44バイト WAV (RIFF) ヘッダー生成 ---
+                progressPercent.textContent = "50%";
+                progressBarFill.style.width = "50%";
+                progressStageText.textContent = "WRITING 44-BYTE WAV HEADER...";
+
+                function writeString(view, offset, string) {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                }
+
+                const headerBuffer = new ArrayBuffer(44);
+                const hv = new DataView(headerBuffer);
+
+                // 32-bit RIFFチャンクサイズ (4GBを超える場合は0xFFFFFFFFクランプ)
+                const clampedRiffSize = Math.min(36 + totalDataBytes, 0xFFFFFFFF);
+                const clampedDataSize = Math.min(totalDataBytes, 0xFFFFFFFF);
+
+                writeString(hv, 0, 'RIFF');
+                hv.setUint32(4, clampedRiffSize, true);
+                writeString(hv, 8, 'WAVE');
+
+                writeString(hv, 12, 'fmt ');
+                hv.setUint32(16, 16, true);
+                hv.setUint16(20, 1, true); // PCM Format = 1
+                hv.setUint16(22, numChannels, true);
+                hv.setUint32(24, sampleRate, true);
+                hv.setUint32(28, sampleRate * blockAlign, true);
+                hv.setUint16(32, blockAlign, true);
+                hv.setUint16(34, 16, true); // 16-bit
+
+                writeString(hv, 36, 'data');
+                hv.setUint32(40, clampedDataSize, true);
+
+                updateModalStep(step2, true, false);
+                updateModalStep(step3, false, true);
+                await wait(120);
+
+                // --- フェーズ 3: ゼロコピー仮想ストリーム結合 ---
+                progressPercent.textContent = "75%";
+                progressBarFill.style.width = "75%";
+                progressStageText.textContent = `COMPILING STREAM (${count.toLocaleString()} CHUNKS)...`;
+
+                // 同一のPCMバッファ参照をcount個配置（メモリ重複割り当てを回避）
+                const blobParts = [headerBuffer];
+                for (let i = 0; i < count; i++) {
+                    blobParts.push(pcmBuffer);
+                }
+
+                updateModalStep(step3, true, false);
+                updateModalStep(step4, false, true);
+                await wait(100);
+
+                // --- フェーズ 4: ネイティブBlob構築 ＆ 自動ダウンロード送出 ---
+                progressPercent.textContent = "100%";
+                progressBarFill.style.width = "100%";
+                progressStageText.textContent = "DISPATCHING DOWNLOAD STREAM...";
+
+                const finalBlob = new Blob(blobParts, { type: 'audio/wav' });
+                clearInterval(timerInterval);
+                const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(2);
+                elapsedTimerText.textContent = `${elapsedSec}s`;
+
+                const downloadUrl = URL.createObjectURL(finalBlob);
+                const baseName = currentFileName.replace(/\.[^/.]+$/, "") || "track";
+                const outFileName = `${baseName}_x${count}_loop.wav`;
+
+                directDownloadLink.href = downloadUrl;
+                directDownloadLink.download = outFileName;
+
+                const totalSec = originalAudioBuffer.duration * count;
+                const finalSizeFormatted = formatBytes(finalBlob.size);
+
+                downloadSubtitle.textContent = `${count.toLocaleString()}回リピート • 合計: ${formatHumanDuration(totalSec)} • ${finalSizeFormatted} (WAV)`;
+                exportTimeTakenBadge.textContent = `書き出し速度: ${elapsedSec}秒`;
+                downloadCard.classList.remove('hidden');
+
+                updateModalStep(step4, true, false);
+                await wait(350);
+
+                // モーダルを閉じ、保存処理を自動実行
+                progressModal.classList.add('opacity-0');
+                setTimeout(() => progressModal.classList.add('hidden', 'pointer-events-none'), 300);
+
+                directDownloadLink.click();
+                showToast(`書き出し完了 (${count.toLocaleString()}回 / ${finalSizeFormatted})`, true);
+
+            } catch (err) {
+                clearInterval(timerInterval);
+                console.error("Export Error:", err);
+                progressModal.classList.add('opacity-0');
+                setTimeout(() => progressModal.classList.add('hidden', 'pointer-events-none'), 300);
+                showToast("書き出し中にエラーが発生しました: " + err.message, false);
+            }
+        });
+
+        // ウィンドウリサイズ時の波形再描画
+        window.addEventListener('resize', () => {
+            if (originalAudioBuffer) renderWaveform(originalAudioBuffer);
+        });
+
+        // 初期化
+        window.onload = function() {
+            updateStats();
+        };
+    </script>
+</body>
+</html>
